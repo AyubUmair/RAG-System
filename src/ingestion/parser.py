@@ -1,15 +1,23 @@
 import fitz
 from pathlib import Path
 from typing import List, Dict, Any
-from langchain_text_splitters import RecursiveCharecterTextSpliter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from src.config import settings
 
 class DocumentIngester:
-    def __init__(self):
-        self.text_splitter = RecursiveCharecterTextSpliter(
-            chunk_size = settings.CHUNK_SIZE,
-            chunk_overlap = settings.CHUNK_OVERLAP,
-            seperators = ["\n\n", "\n", ".", " ", ""]
+    def __init__(
+        self,
+        chunk_size: int = settings.CHUNK_SIZE,
+        chunk_overlap: int = settings.CHUNK_OVERLAP
+    ):
+        self.chunk_size = chunk_size
+        self.chunk_overlap = chunk_overlap
+        
+        # Note: 'separators' spelled with an 'a'
+        self.text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=self.chunk_size,
+            chunk_overlap=self.chunk_overlap,
+            separators=["\n\n", "\n", ". ", " ", ""]
         )
 
     def parse_pdf(self, file_path: Path) -> List[Dict[str, Any]]:
@@ -31,7 +39,20 @@ class DocumentIngester:
                 )
         doc.close()
         return documents
-
+    
+    def parse_text(self, text: str, source_name: str = "raw_text") -> List[Dict[str, Any]]:
+        """Parses plain text strings into a standard document format."""
+        if not text.strip():
+            return []
+        return [{
+            "text": text.strip(),
+            "metadata": {
+                "source": source_name,
+                "page": 1,
+                "total_pages": 1
+            }
+        }]
+    
     def chunk_documents(self, documents : List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         chunked_docs = []
         for doc in documents:
