@@ -3,14 +3,15 @@ from pathlib import Path
 from typing import Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file = ".env",
+        env_file = str(PROJECT_ROOT / ".env"),
         env_file_encoding = 'utf-8',
         extra = 'ignore'
     )
 
-    PROJECT_NAME : str = "Projection Agentic RAG System"
+    PROJECT_NAME : str = "Production Agentic RAG System"
     ENV : str = "development"
     LOG_LEVEL : str = "INFO"
 

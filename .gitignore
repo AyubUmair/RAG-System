@@ -1,0 +1,89 @@
+# ==========================================
+# 1. Environment & API Secrets (CRITICAL)
+# ==========================================
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# ==========================================
+# 2. Python Virtual Environments & Cache
+# ==========================================
+.venv/
+venv/
+env/
+ENV/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# ==========================================
+# 3. Vector DB, Embeddings & Data Storage
+# ==========================================
+# Ignore local Qdrant databases and vector storage
+data/qdrant_db/
+qdrant_storage/
+storage/
+
+# Ignore raw user documents and uploaded PDFs (keep the folder structure with .gitkeep)
+data/raw/*
+!data/raw/.gitkeep
+
+data/processed/*
+!data/processed/.gitkeep
+
+# ==========================================
+# 4. Model Cache & Temporary Files
+# ==========================================
+# FastEmbed and FlashRank model downloads
+.cache/
+/tmp/flashrank/
+flashrank_models/
+*.onnx
+
+# ==========================================
+# 5. Testing & Code Quality
+# ==========================================
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+.mypy_cache/
+.ruff_cache/
+
+# ==========================================
+# 6. Streamlit & Logs
+# ==========================================
+.streamlit/secrets.toml
+*.log
+logs/
+
+# ==========================================
+# 7. IDE & Operating System Files
+# ==========================================
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+desktop.ini
