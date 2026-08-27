@@ -144,3 +144,48 @@ def generate_node(state: AgentState, llm_instance=None) -> Dict[str, Any]:
     text_content = _extract_text(response.content)
     
     return {"generation": text_content}
+# --- NODE 5: HALLUCINATION / GROUNDEDNESS GRADER ---
+class GradeHallucination(BaseModel):
+    """Binary score checking whether the generation is grounded in the retrieved context."""
+    binary_score: str = Field(
+        description="'yes' if every factual claim in the generation is supported by the "
+                     "provided documents, 'no' if it contains unsupported claims or hallucinations."
+    )
+    reasoning: Optional[str] = Field(
+        default=None, description="Brief justification for the score."
+    )
+
+def grade_generation_node(state: AgentState, llm_instance=None) -> Dict[str, Any]:
+    """Checks whether the generated answer is factually grounded in the retrieved documents."""
+    documents = state.get("documents", [])
+    generation = state.get("generation", "")
+
+    # Nothing was retrieved (e.g. "I could not find sufficient information..." fallback) —
+    # there's nothing to hallucinate against, so treat as grounded and let it pass through.
+    if not documents or not generation.strip():
+        return {"is_grounded": True}
+
+    active_llm = llm_instance or get_llm()
+    structured_llm = active_llm.with_structured_output(GradeHallucination)
+
+    prompt = ChatPromptTemplate.from_messages([
+        ("system",
+         "You are a strict fact-checker. Compare the GENERATED ANSWER against the SOURCE "
+         "DOCUMENTS.\n"
+         "Grade 'yes' only if every factual claim in the answer is directly supported by the "
+         "documents.\n"
+         "Grade 'no' if the answer contains any claim, number, name, or detail that is not "
+         "present in the documents, even if it seems plausible or generally true.\n"
+         "An answer that correctly says 'the documents don't contain this information' should "
+         "be graded 'yes'."),
+        ("human", "SOURCE DOCUMENTS:\n{context}\n\nGENERATED ANSWER:\n{generation}")
+    ])
+
+    context_str = "\n\n".join([doc["text"] for doc in documents])
+    response = (prompt | structured_llm).invoke({
+        "context": context_str,
+        "generation": generation
+    })
+
+    is_grounded = response.binary_score.strip().lower() == "yes"
+    return {"is_grounded": is_grounded}

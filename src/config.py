@@ -31,21 +31,21 @@ class Settings(BaseSettings):
 
     #Reranker Model
     RERANKER_MODEL_NAME : str = "ms-marco-MiniLM-L-12-v2"
-    TOP_K_HYBRID : int = 15
-    TOP_K_RERANK : int = 4
+    TOP_K_HYBRID : int = 20
+    TOP_K_RERANK : int = 6
 
     #LLM Settings
     LLM_PROVIDER : str = 'openai'
     OPENAI_API_KEY : Optional[str] = os.getenv("OPENAI_API_KEY")
     OPENAI_MODEL : str = "gemini-4o-mini"
     GEMINI_API_KEY : Optional[str] = os.getenv("GEMINI_API_KEY")
-    GEMINI_MODEL : str = "gemini-2.5-flash"
+    GEMINI_MODEL : str = "gemini-3.6-flash"
     TEMPERATURE : float = 0.0
 
     #Inestion and agent Guardrails
-    CHUNK_SIZE : int = 300 
-    CHUNK_OVERLAP : int = 60 
+    CHUNK_SIZE : int = 800 
+    CHUNK_OVERLAP : int = 150 
     MAX_RETRY_COUNT : int = 2
-    RELEVANCE_THRESHOLD : float = 0.20
+    RELEVANCE_THRESHOLD : float = 0.10
 
 settings = Settings()

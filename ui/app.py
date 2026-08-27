@@ -26,13 +26,18 @@ if st.button("Submit Question") and question:
         res = requests.post(f"{API_URL}/query", json={"question": question})
         if res.status_code == 200:
             data = res.json()
-            
             st.markdown("### Answer")
             st.write(data["answer"])
+            if not data.get("grounded", True):
+                st.warning("⚠️ This answer could not be fully verified against the source documents after retrying — treat it with caution.")
             
             with st.expander(f"🔍 Citations & Retrieved Chunks (Retries: {data['retry_count']})"):
-                for idx, src in enumerate(data["sources"]):
-                    st.markdown(f"**Chunk {idx+1}** (Score: `{src.get('score', 0):.3f}` | Page {src['metadata'].get('page')})")
+                for idx, src in enumerate(data.get("sources", [])):
+                    st.markdown(f"**Chunk {idx+1}** (Score: `{src.get('score', 0):.3f}` | Page {src.get('metadata', {}).get('page')})")
                     st.info(src["text"])
         else:
-            st.error("Error communicating with backend API.")
+            try:
+                error_detail = res.json().get("detail", res.text)
+            except Exception:
+                error_detail = res.text
+            st.error(f"Backend Error ({res.status_code}): {error_detail}")

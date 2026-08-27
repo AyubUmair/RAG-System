@@ -39,3 +39,38 @@ def test_decide_to_generate_when_retry_limit_reached():
         "source_documents": []
     }
     assert decide_to_generate(state) == "generate"
+
+from src.agent.graph import decide_after_generation
+
+def test_decide_after_generation_when_grounded():
+    """If the generation is grounded, the graph should end."""
+    state = {
+        "question": "What is Agentic RAG?",
+        "documents": [{"text": "...", "metadata": {}}],
+        "generation": "Agentic RAG combines retrieval with agent decision-making.",
+        "retry_count": 0,
+        "is_grounded": True,
+    }
+    assert decide_after_generation(state) == "end"
+
+def test_decide_after_generation_when_hallucinated_and_retries_remain():
+    """If ungrounded and retries remain, loop back to transform_query."""
+    state = {
+        "question": "What is Agentic RAG?",
+        "documents": [{"text": "...", "metadata": {}}],
+        "generation": "Agentic RAG was invented in 1998 by John Smith.",
+        "retry_count": 0,
+        "is_grounded": False,
+    }
+    assert decide_after_generation(state) == "transform_query"
+
+def test_decide_after_generation_when_retries_exhausted():
+    """If ungrounded but out of retries, stop anyway to avoid infinite loop."""
+    state = {
+        "question": "What is Agentic RAG?",
+        "documents": [{"text": "...", "metadata": {}}],
+        "generation": "Agentic RAG was invented in 1998 by John Smith.",
+        "retry_count": 2,
+        "is_grounded": False,
+    }
+    assert decide_after_generation(state) == "end"
