@@ -11,15 +11,23 @@ if "thread_id" not in st.session_state:            # NEW
 
 with st.sidebar:
     st.header("📄 Document Ingestion")
-    uploaded_file = st.file_uploader("Upload PDF", type=["pdf"])
+    uploaded_file = st.file_uploader(
+        "Upload a document",
+        type=["pdf", "docx", "html", "htm", "md", "markdown", "txt"]
+    )
     if uploaded_file and st.button("Index Document"):
         with st.spinner("Processing & embedding..."):
-            files = {"file": (uploaded_file.name, uploaded_file.getvalue(), "application/pdf")}
+            files = {"file": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type or "application/octet-stream")}
             res = requests.post(f"{API_URL}/ingest", files=files)
             if res.status_code == 200:
                 st.success(f"Indexed {res.json()['chunks_indexed']} chunks!")
             else:
-                st.error("Failed to index document.")
+                st.error(f"Failed to index document: {res.json().get('detail', 'Unknown error')}")
+
+    st.divider()
+    if st.button("🔄 New Conversation"):
+        st.session_state.thread_id = None
+        st.rerun()
 
     st.divider()                                     # NEW
     if st.button("🔄 New Conversation"):              # NEW
