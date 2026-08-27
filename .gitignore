@@ -42,6 +42,7 @@ wheels/
 data/qdrant_db/
 qdrant_storage/
 storage/
+data/checkpoints.sqlite
 
 # Ignore raw user documents and uploaded PDFs (keep the folder structure with .gitkeep)
 data/raw/*
