@@ -82,7 +82,8 @@ async def query_agent(request: QueryRequest):
             answer=answer_str,
             sources=final_state.get("source_documents", []),
             grounded=final_state.get("is_grounded", True),
-            retry_count=final_state.get("retry_count", 0)
+            retry_count=final_state.get("retry_count", 0),
+            used_web_search=final_state.get("used_web_search", False),
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Query execution failed: {str(e)}")

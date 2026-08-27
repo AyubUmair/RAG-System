@@ -9,6 +9,10 @@ from src.retrieval.vector_store import HybridVectorStore
 from src.retrieval.reranker import Reranker
 from src.agent.state import AgentState
 
+
+from langchain_tavily import TavilySearch
+#from langchain_community.tools.tavily_search import TavilySearchResults
+
 def _extract_text(content: Union[str, List[Any]]) -> str:
     """Helper to safely extract string text whether the LLM returns str or a list of blocks."""
     if isinstance(content, str):
@@ -189,3 +193,46 @@ def grade_generation_node(state: AgentState, llm_instance=None) -> Dict[str, Any
 
     is_grounded = response.binary_score.strip().lower() == "yes"
     return {"is_grounded": is_grounded}
+# --- NODE: WEB SEARCH FALLBACK ---
+def web_search_node(state: AgentState) -> Dict[str, Any]:
+    """
+    Falls back to live web search when local retrieval + retries produced nothing relevant.
+    Formats results into the same document schema used by the vector store so downstream
+    nodes (generate, grade_generation) don't need to know the source.
+    """
+    if not settings.ENABLE_WEB_SEARCH_FALLBACK or not settings.TAVILY_API_KEY:
+        # No fallback configured — pass through with whatever (possibly empty) documents exist.
+        return {"used_web_search": False}
+
+    query = state.get("transformed_query") or state["question"]
+
+# in web_search_node
+    search_tool = TavilySearch(
+    api_key=settings.TAVILY_API_KEY,
+    max_results=settings.WEB_SEARCH_MAX_RESULTS
+    )
+
+    try:
+        response = search_tool.invoke({"query": query})
+        raw_results = response.get("results", []) if isinstance(response, dict) else response
+    except Exception:
+        return {"used_web_search": False}
+    web_docs = [
+        {
+            "text": r.get("content", ""),
+            "metadata": {
+                "source": r.get("url", "web"),
+                "page": None,
+                "title": r.get("title", "Web result")
+            },
+            "score": None
+        }
+        for r in raw_results
+        if r.get("content", "").strip()
+    ]
+
+    return {
+        "documents": web_docs,
+        "source_documents": web_docs,
+        "used_web_search": True
+    }

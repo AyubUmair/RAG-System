@@ -28,6 +28,8 @@ if st.button("Submit Question") and question:
             data = res.json()
             st.markdown("### Answer")
             st.write(data["answer"])
+            if data.get("used_web_search"):
+                st.info("🌐 No relevant content found in your documents — this answer used a live web search instead.")
             if not data.get("grounded", True):
                 st.warning("⚠️ This answer could not be fully verified against the source documents after retrying — treat it with caution.")
             
