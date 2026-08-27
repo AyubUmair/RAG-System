@@ -1,31 +1,39 @@
-from flashrank import Ranker, RerankRequest
 from typing import List, Dict, Any
+from flashrank import Ranker, RerankRequest
 from src.config import settings
 
 class Reranker:
-    def __init__(self):
-        # Ultra-fast, lightweight quantized reranker running locally
-        self.ranker = Ranker(model_name=settings.RERANKER_MODEL_NAME, cache_dir="/tmp/flashrank")
+    def __init__(self, model_name: str = settings.RERANKER_MODEL_NAME):
+        
+        self.ranker = Ranker(model_name=model_name)
 
-    def rerank(self, query: str, documents: List[Dict[str, Any]], top_k: int = settings.TOP_K_RERANK) -> List[Dict[str, Any]]:
-        if not documents:
+    def rerank(
+        self,
+        query: str,
+        documents: List[Dict[str, Any]],
+        top_k: int = settings.TOP_K_RERANK,
+        threshold: float = settings.RELEVANCE_THRESHOLD
+    ) -> List[Dict[str, Any]]:
+       
+        if not documents or not query.strip():
             return []
         
         passages = [
-            {"id": idx, "text": doc["text"], "metadata": doc["metadata"]}
+            {"id": idx, "text": doc["text"], "metadata": doc.get("metadata", {})}
             for idx, doc in enumerate(documents)
         ]
         
         rerank_request = RerankRequest(query=query, passages=passages)
         ranked_results = self.ranker.rerank(rerank_request)
         
-        # Filter by top_k and threshold
+        # Filter top-k by relevance threshold
         filtered = []
         for res in ranked_results[:top_k]:
-            if res["score"] >= settings.RELEVANCE_THRESHOLD:
+            score = float(res["score"])
+            if score >= threshold:
                 filtered.append({
                     "text": res["text"],
                     "metadata": res["metadata"],
-                    "score": float(res["score"])
+                    "score": score
                 })
         return filtered
