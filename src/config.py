@@ -37,10 +37,15 @@ class Settings(BaseSettings):
     #LLM Settings
     LLM_PROVIDER : str = 'openai'
     OPENAI_API_KEY : Optional[str] = os.getenv("OPENAI_API_KEY")
-    OPENAI_MODEL : str = "gemini-4o-mini"
+    OPENAI_MODEL : str = "gpt-4o-mini"
     GEMINI_API_KEY : Optional[str] = os.getenv("GEMINI_API_KEY")
     GEMINI_MODEL : str = "gemini-3.6-flash"
     TEMPERATURE : float = 0.0
+    
+    #Web Search Fallback
+    ENABLE_WEB_SEARCH_FALLBACK : bool = True
+    TAVILY_API_KEY : Optional[str] = os.getenv("TAVILY_API_KEY")
+    WEB_SEARCH_MAX_RESULTS : int = 4
 
     #Inestion and agent Guardrails
     CHUNK_SIZE : int = 800 

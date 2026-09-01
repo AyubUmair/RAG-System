@@ -8,6 +8,7 @@ from unstructured.partition.md import partition_md
 from unstructured.partition.text import partition_text
 from src.config import settings
 
+
 SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".html", ".htm", ".md", ".markdown", ".txt"}
 
 

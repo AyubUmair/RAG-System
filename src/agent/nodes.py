@@ -46,12 +46,11 @@ def get_llm():
         temperature=settings.TEMPERATURE
     )
 
-vector_store = HybridVectorStore()
-reranker = Reranker()
+from src.dependencies import vector_store, reranker
 
 # --- NODE 1: RETRIEVAL ---
 def retrieve_node(state: AgentState) -> Dict[str, Any]:
-    """Retrieves candidates via hybrid search and reranks them with FlashRank."""
+    
     query = state.get("transformed_query") or state["question"]
     
     raw_docs = vector_store.hybrid_search(query=query, limit=settings.TOP_K_HYBRID)
@@ -69,11 +68,11 @@ def retrieve_node(state: AgentState) -> Dict[str, Any]:
 
 # --- NODE 2: DOCUMENT GRADER ---
 class GradeDocuments(BaseModel):
-    """Binary score for relevance check on retrieved documents."""
+   
     binary_score: str = Field(description="Relevance decision: 'yes' or 'no'")
 
 def grade_documents_node(state: AgentState, llm_instance=None) -> Dict[str, Any]:
-    """Determines whether the retrieved documents contain relevant context."""
+   
     documents = state.get("documents", [])
     question = state["question"]
     
@@ -98,7 +97,7 @@ def grade_documents_node(state: AgentState, llm_instance=None) -> Dict[str, Any]
 
 # --- NODE 3: QUERY REWRITER ---
 def transform_query_node(state: AgentState, llm_instance=None) -> Dict[str, Any]:
-    """Rewrites the query to improve retrieval recall on subsequent attempts."""
+  
     base_question = state.get("transformed_query") or state["question"]  # CHANGED
     retry_count = state.get("retry_count", 0) + 1
 
@@ -121,7 +120,7 @@ def transform_query_node(state: AgentState, llm_instance=None) -> Dict[str, Any]
 
 # --- NODE 4: GENERATOR ---
 def generate_node(state: AgentState, llm_instance=None) -> Dict[str, Any]:
-    """Generates an answer strictly grounded in the retrieved documents."""
+    
     question = state["question"]
     documents = state.get("documents", [])
     history = state.get("chat_history", [])
@@ -260,11 +259,7 @@ def web_search_node(state: AgentState) -> Dict[str, Any]:
     }
 # --- NODE: CONTEXTUALIZE QUERY (resolves follow-ups using chat history) ---
 def contextualize_query_node(state: AgentState, llm_instance=None) -> Dict[str, Any]:
-    """
-    Rewrites a follow-up question ("what about page 3?") into a standalone question
-    using prior turns, so retrieval doesn't depend on conversational context it can't see.
-    Runs once at the start of every turn, before retrieval.
-    """
+   
     history = state.get("chat_history", [])
     question = state["question"]
 

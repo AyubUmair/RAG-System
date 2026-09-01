@@ -7,5 +7,6 @@ class AgentState(TypedDict):
     generation: Optional[str]       # Generated answer
     retry_count: int                # Number of re-retrieval attempts
     is_grounded: bool               # whether generation is supported by documents
+    used_web_search: bool           # whether this answer relied on live web search
     is_relevant: bool               # Document quality decision flag
     source_documents: List[Dict[str, Any]] # Final citations
